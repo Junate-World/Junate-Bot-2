@@ -4,6 +4,8 @@ from time import sleep
 from gtts import gTTS
 import os
 import speech_recognition as sr
+import time
+import sys
 
 recognizer = sr.Recognizer()
 
@@ -37,12 +39,22 @@ def text_to_speech(text: str, filename: str):
     tts.save(filename)
     os.system(f"start {filename}")
 
+def typing_effect(text: str, delay: float = 0.6):
+    """Simulate typing out text word by word with a delay."""
+    words = text.split()  # Split the text into words
+    for word in words:
+        print(word, end=' ', flush=True)  # Print word followed by space
+        sys.stdout.flush()  # Ensure the output is displayed immediately
+        time.sleep(delay)  # Delay between each word in milliseconds
+
+    print()
 
 def get_answer_for_question(question: str, knowledge_base: dict) -> str | None:
     """Find and return the answer for a given question from the knowledge base."""
     for q in knowledge_base["questions"]:
         if q["question"] == question:
             text_to_speech(q["answer"], "answer.mp3")
+            
             return q["answer"]
     return None
 
@@ -54,7 +66,7 @@ def chat_bot():
     while True:
         try:
             with sr.Microphone() as source:
-                
+                sleep(1)
                 print("Bot is listening to your speech...")
                 recognizer.adjust_for_ambient_noise(source, duration=2)
                 audio = recognizer.listen(source)
@@ -68,7 +80,7 @@ def chat_bot():
                     print("Sorry, I could not understand what you said.")
                     continue
 
-                if user_input == 'quit':
+                if user_input == 'i quit' or user_input == 'quit' or user_input == 'exit':
                     text_to_speech('Thanks for your time and goodbye!', "answer.mp3")
                     print("Goodbye!")
                     break
@@ -77,7 +89,7 @@ def chat_bot():
 
                 if best_match:
                     answer: str = get_answer_for_question(best_match, knowledge_base)
-                    print(f'Bot: {answer}')
+                    typing_effect(f'Bot: {answer}')
                 else:
                     text_to_speech('I don\'t know the answer. Can you teach me?', "answer.mp3")
                     print('Bot: I don\'t know the answer. Can you teach me?')
